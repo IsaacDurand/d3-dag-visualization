@@ -91,7 +91,7 @@ Renderer.prototype.run = function(graph, svg) {
 
   drawNodes(graph, this._drawNode, svgNodes);
   drawEdgeLabels(graph, this._drawEdgeLabel, svgEdges);
-  
+
   // Now apply the layout function
   var result = runLayout(graph, this._layout);
 
@@ -185,17 +185,52 @@ function runLayout(graph, layout) {
 }
 
 function reposition(graph, svgNodes, svgEdges) {
+  console.log('Running reposition');
+  // console.log('graph', graph);
+  // console.log('svgNodes', svgNodes);
+  // // svgNodes is an array containing one element.
+  // // This element is an array of 7 g's.
+  // // This element also has a parentNode property.
+  // console.log('svgNodes[0]', svgNodes[0]);
+  // // svgNodes is similar. I think it represents the links?
+  // console.log('svgEdges', svgEdges);
+
   svgNodes
     .attr("transform", function(u) {
+      // graph.node is a function that grabs the data we want.
+      // The first argument (u) is the curren node's id (a string like 'm1').
+      // The second argument is an index 0-7.
+      // The third arguent is 0.
+      // The fourth argument is undefined.
       var value = graph.node(u);
-      return "translate(" + value.x + "," + value.y + ")";
+      // console.log(graph); // This is a Digraph - whatever that means.
+      // console.log(value); // does not contain info about my parents or child
+      // Ooh, value has all kinds of goodies, including the translation values used below and the label I provided in graph3.js.
+      // I need to somehow adjust the logic here.
+      // Can I go back to my child and see if he has another parent?
+      // Can I log myself and my parents?
+      // console.log(value.label, value.order);
+      // IDEA: Can I just set value.y to value.order times something?
+      // Or use value.order times something in place of value.y?
+      // Now we're making progress!
+      return "translate(" + value.x + "," + value.order * 60 + ")";
     });
 
+  // This code just moves the link label (text).
+  // console.log('svgEdges.selectAll("g .edge-label")', svgEdges.selectAll("g .edge-label"));
   svgEdges
-    .selectAll("g .edge-label")
+    .selectAll("g .edge-label") // This returns the link labels, basically.
     .attr("transform", function(e) {
+      // e is an underscored number from _1 to _8
       var value = graph.edge(e);
+      // Again, value is a data object, with label as the name.
+      // Most of the property values are consistent from link to link.
+      // value.point is where the differences come in.
+      // It's an array of three objects.
+      // All three objects have x and y properties.
+      // The middle object also has dr, dl, ur, and ul properties.
       var point = findMidPoint(value.points);
+      // In our case, point will just be value.points[1].
       return "translate(" + point.x + "," + point.y + ")";
     });
 }
@@ -231,12 +266,15 @@ function defaultDrawEdge(graph, e, root) {
       // TODO: use bpodgursky's shortening algorithm here
       points.push(intersectRect(target, p1));
 
-      return d3.svg.line()
+      var result = d3.svg.line()
         .x(function(d) { return d.x; })
         .y(function(d) { return d.y; })
         .interpolate("bundle")
         .tension(0.95)
         (points);
+
+      console.log(result);
+      return result;
     });
 }
 
@@ -322,7 +360,9 @@ function addTextLabel(label, root) {
 
 function findMidPoint(points) {
   var midIdx = points.length / 2;
+  // In our case, since points.length is 3, midIdx is 1.5.
   if (points.length % 2) {
+    // 1.5 % 2 is truthy (not zero), so return points[1], the middle point (duh).
     return points[Math.floor(midIdx)];
   } else {
     var p0 = points[midIdx - 1];
@@ -1500,7 +1540,7 @@ exports.max = function(values) {
 exports.all = function(xs, f) {
   for (var i = 0; i < xs.length; ++i) {
     if (!f(xs[i])) {
-      return false; 
+      return false;
     }
   }
   return true;
@@ -1902,7 +1942,7 @@ Digraph.prototype.isDirected = function() {
 /*
  * Returns all successors of the node with the id `u`. That is, all nodes
  * that have the node `u` as their source are returned.
- * 
+ *
  * If no node `u` exists in the graph this function throws an Error.
  *
  * @param {String} u a node id
@@ -1916,7 +1956,7 @@ Digraph.prototype.successors = function(u) {
 /*
  * Returns all predecessors of the node with the id `u`. That is, all nodes
  * that have the node `u` as their target are returned.
- * 
+ *
  * If no node `u` exists in the graph this function throws an Error.
  *
  * @param {String} u a node id

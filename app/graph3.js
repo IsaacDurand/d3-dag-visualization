@@ -1,7 +1,6 @@
-graph3.js
-
 // Note from Isaac: I made this to mimic the graph I drew on my desk.
 
+// loadData is defined on main.js. Basically, it runs DAG.displayGraph.
 loadData(
     {
         name: 'graph3',
