@@ -280,7 +280,11 @@ function defaultDrawEdge(graph, e, root) {
       points.push(intersectRect(target, p1));
 
       points[0].y = source.order * 60;
-      points[2].y = target.order * 60;
+      if (source.order <= target.order) {
+        points[2].y = target.order * 60;
+      } else {
+        points[2].y = target.order * 60 + 10;
+      }
       points[1].y = (points[0].y + points[2].y) / 2;
 
       // console.log(target.order * 60);
