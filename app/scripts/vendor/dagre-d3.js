@@ -213,10 +213,14 @@ function reposition(graph, svgNodes, svgEdges) {
       // IDEA: Can I just set value.y to value.order times something?
       // Or use value.order times something in place of value.y?
       // Now we're making progress!
-      return "translate(" + value.x + "," + value.order * 60 + ")";
+      value.y = value.order * 60;
+      console.log(`${value.label} - y is ${value.y}`);
+      return "translate(" + value.x + "," + value.y + ")";
+      // return "translate(" + value.x + "," + value.order * 60 + ")";
     });
 
   // This code just moves the link label (text).
+  // console.log('svgEdges', svgEdges); // svgEdges is an array of g.edge's
   // console.log('svgEdges.selectAll("g .edge-label")', svgEdges.selectAll("g .edge-label"));
   svgEdges
     .selectAll("g .edge-label") // This returns the link labels, basically.
@@ -249,31 +253,46 @@ function defaultDrawEdgeLabel(graph, e, root) {
   addLabel(graph.edge(e).label, label, 0, 0);
 }
 
+// Monday: I think this is what I want to adjust.
+// It looks like this function is called before reposition.
 function defaultDrawEdge(graph, e, root) {
+  // graph is a Digraph, e is a number preceded by an underscore,
+  // and root is an array holding one g.edge node
   root
-    .insert("path", "*")
+    // insert a path element before every g within a g.edge node in the selection (should be only 1)
+    .insert("path", "*") // returns the just-inserted path element
     .attr("marker-end", "url(#arrowhead)")
     .attr("d", function() {
       var value = graph.edge(e);
+      // console.log('value', value);
       var source = graph.node(graph.incidentNodes(e)[0]);
+      // console.log('source', source);
       var target = graph.node(graph.incidentNodes(e)[1]);
+      // console.log('target', target);
       var points = value.points;
 
       var p0 = points.length === 0 ? target : points[0];
       var p1 = points.length === 0 ? source : points[points.length - 1];
 
+      // If we didn't have the following lines, points would contain only the middle point.
       points.unshift(intersectRect(source, p0));
       // TODO: use bpodgursky's shortening algorithm here
       points.push(intersectRect(target, p1));
 
+      points[0].y = source.order * 60;
+      points[2].y = target.order * 60;
+      points[1].y = (points[0].y + points[2].y) / 2;
+
+      // console.log(target.order * 60);
+      // console.log(`${target.label} y's: ${points[0].y}, ${points[1].y}, ${points[2].y}`);
+
       var result = d3.svg.line()
         .x(function(d) { return d.x; })
         .y(function(d) { return d.y; })
-        .interpolate("bundle")
+        .interpolate("bundle") // https://github.com/mbostock/d3/wiki/SVG-Shapes#line_interpolate
         .tension(0.95)
-        (points);
+        (points); // Perhaps I just need to provide different points?
 
-      console.log(result);
       return result;
     });
 }
