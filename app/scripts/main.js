@@ -30,14 +30,15 @@
             // (dagreD3 is a global object defined in app/scripts/vendor/dagre-d3.js)
             var renderer = new dagreD3.Renderer();
 
-            // ?I believe the layout method returns another renderer instance.
-            // ?rankDir can be 'LR' or something else. rankDir is used in switches a lot.
-
+            // dagreD3 is the global.dagreD3 object from dagre-d3.js
             // I think dagreD3.layout is dagre's layout method, which I assume is this: https://github.com/cpettitt/dagre/blob/master/lib/layout.js.
             var layout = dagreD3.layout().rankDir('LR');
+            // ?rankDir can be 'LR' or something else. rankDir is used in switches a lot.
 
             // Run the layout method from our renderer instance.
-            renderer.layout(layout)
+            renderer.layout(layout) // It looks like this return another Renderer instance.
+              // The run method is defined in dagre-d3.js on the Renderer prototype.
+              // Below, I think we may be copying the layout and then appending it to a g.
               .run(dagreD3.json.decode(nodes, links), svg.append('g'));
             // MOST CONFUSING STUFF ENDS
 

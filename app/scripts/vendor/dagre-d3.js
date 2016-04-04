@@ -96,7 +96,8 @@ Renderer.prototype.run = function(graph, svg) {
   var result = runLayout(graph, this._layout);
 
   // Run any user-specified post layout processing
-  this._postLayout(result, svg);
+  // Isaac: I'm commenting out this function because it's empty.
+  // this._postLayout(result, svg);
 
   drawEdges(result, this._drawEdge, svgEdges);
 
@@ -105,7 +106,7 @@ Renderer.prototype.run = function(graph, svg) {
 
   this._postRender(result, svg);
 
-  return result;
+  return result; // result is a Digraph
 };
 
 function copyAndInitGraph(graph) {
@@ -185,7 +186,6 @@ function runLayout(graph, layout) {
 }
 
 function reposition(graph, svgNodes, svgEdges) {
-  console.log('Running reposition');
   // console.log('graph', graph);
   // console.log('svgNodes', svgNodes);
   // // svgNodes is an array containing one element.
@@ -301,6 +301,7 @@ function defaultDrawEdge(graph, e, root) {
     });
 }
 
+// Empty function
 function defaultPostLayout() {
   // Do nothing
 }
