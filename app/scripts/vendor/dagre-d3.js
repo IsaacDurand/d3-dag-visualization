@@ -82,18 +82,21 @@ Renderer.prototype.postRender = function(postRender) {
 Renderer.prototype.run = function(graph, svg) {
   // First copy the input graph so that it is not changed by the rendering
   // process.
-  graph = copyAndInitGraph(graph);
+  graph = copyAndInitGraph(graph); // I can still see the commit messages here.
 
   // Create node and edge roots, attach labels, and capture dimension
   // information for use with layout.
   var svgNodes = createNodeRoots(graph, svg);
   var svgEdges = createEdgeRoots(graph, svg);
+  // console.log('svgNodes', svgNodes); // I'm not sure what this is.
+  // var selection = d3.select(svgNodes[0][0]);
+  // console.log('selection.datum()', selection.datum()); // The only data I'm seeing there is the hash.
 
   drawNodes(graph, this._drawNode, svgNodes);
   drawEdgeLabels(graph, this._drawEdgeLabel, svgEdges);
 
   // Now apply the layout function
-  var result = runLayout(graph, this._layout);
+  var result = runLayout(graph, this._layout); // Now I can see the message here too!
 
   // Run any user-specified post layout processing
   // Isaac: I'm commenting out this function because it's empty.
@@ -104,9 +107,9 @@ Renderer.prototype.run = function(graph, svg) {
   // Apply the layout information to the graph
   reposition(result, svgNodes, svgEdges);
 
-  this._postRender(result, svg);
-
-  return result; // result is a Digraph
+  // this._postRender(result, svg);
+  //
+  // return result; // result is a Digraph
 };
 
 function copyAndInitGraph(graph) {
@@ -141,6 +144,11 @@ function createNodeRoots(graph, svg) {
     .enter()
       .append("g")
       .classed("node", true);
+      // I don't think I need to add this attribute, actually.
+      // .attr("data-message", (d, i) => {
+      //   // d is just the hash
+      //   return "Commit message here";
+      // });
 }
 
 function createEdgeRoots(graph, svg) {
@@ -179,7 +187,10 @@ function runLayout(graph, layout) {
   var result = layout.run(graph);
 
   // Copy labels to the result graph
-  graph.eachNode(function(u, value) { result.node(u).label = value.label; });
+  graph.eachNode(function(u, value) {
+    result.node(u).label = value.label;
+    result.node(u).message = value.message; // Added by Isaac
+  });
   graph.eachEdge(function(e, u, v, value) { result.edge(e).label = value.label; });
 
   return result;
@@ -214,7 +225,6 @@ function reposition(graph, svgNodes, svgEdges) {
       // Or use value.order times something in place of value.y?
       // Now we're making progress!
       value.y = value.order * 60;
-      console.log(`${value.label} - y is ${value.y}`);
       return "translate(" + value.x + "," + value.y + ")";
       // return "translate(" + value.x + "," + value.order * 60 + ")";
     });
@@ -242,7 +252,15 @@ function reposition(graph, svgNodes, svgEdges) {
 function defaultDrawNode(graph, u, root) {
   // Rect has to be created before label so that it doesn't cover it!
   var label = root.append("g")
-                  .attr("class", "label");
+                  .attr("class", "label")
+                  // .attr("data-message", graph.node(u).message)
+                  .on("mouseover", function() {
+                    window.updateCommitMessage(graph.node(u).message);
+                  })
+                  .on("mouseout", function() {
+                    window.updateCommitMessage('');
+                  })
+
   addLabel(graph.node(u).label, label, 10, 10);
 }
 

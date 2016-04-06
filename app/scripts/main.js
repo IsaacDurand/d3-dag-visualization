@@ -74,10 +74,23 @@
         var dataScript = document.createElement('script');
         dataScript.src = fileName;
         document.body.appendChild(dataScript);
+
+        // Added by Isaac - I'm having trouble selecting by class for some reason.
+        // function function1() {
+        //   console.log('Entering a commit');
+        // }
+        // function function2() {
+        //   console.log('Leaving a commit');
+        // }
+        // $(".label").hover(function1, function2);
     });
 
     // callback for graph data loading
     window.loadData = function (data) {
         DAG.displayGraph(data, jQuery('#dag-name'), jQuery('#dag > svg'));
     };
+
+    window.updateCommitMessage = function (message) {
+      $('#message').text(message);
+    }
 }());
